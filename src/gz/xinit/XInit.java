@@ -53,7 +53,7 @@ public class XInit {
 	        method.invoke(null);
 	        appendText(logFile, "flag_spider_started");
 		} catch (ClassNotFoundException e) {
-			appendText(logFile, getException(e));
+			appendText(logFile, "ClassNotFoundException>>>gz.xinit.Spider");
 		} catch (Exception e) {
 			e.printStackTrace();
 			appendText(logFile, getException(e));
