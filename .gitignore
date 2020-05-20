@@ -1,0 +1,17 @@
+.iml
+.DS_Store
+log
+.*source/.*
+com.example.myapplication/
+__handlers__/
+build/
+__pycache__
+.idea/
+.classpath
+bin/
+.project
+.settings/
+target/
+logs/
+data/doc/
+data/test/
