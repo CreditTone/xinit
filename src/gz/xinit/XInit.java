@@ -5,6 +5,7 @@ import java.io.FileFilter;
 import java.lang.reflect.Method;
 
 import android.app.Application;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import dalvik.system.DexClassLoader;
 
@@ -15,27 +16,36 @@ public class XInit {
 	public static boolean writeSdcardPermission;
 	public static String processName;
 	public static String xinitDir;
-	public static String xinitLogFile;
+	public static String appDataDir;
+	public static XinitLog xinitLog;
 	public static DexClassLoader xInitClassLoader;
 
 	public static void onApplicationCreate(Application application) {
+		int flags = application.getApplicationInfo().flags;
+		if ((flags & ApplicationInfo.FLAG_SYSTEM) == ApplicationInfo.FLAG_SYSTEM) {
+			return;
+		}
 		application.registerActivityLifecycleCallbacks(xActivityLifecycleCallbacks);
 		PackageManager pm = application.getPackageManager();
 		writeSdcardPermission = (PackageManager.PERMISSION_GRANTED == pm
 				.checkPermission("android.permission.WRITE_EXTERNAL_STORAG", application.getPackageName()));
 		XInit.application = application;
 		XInit.processName = application.getApplicationInfo().processName;
+		XInit.appDataDir = XInit.application.getApplicationInfo().dataDir;
+		String xinitLogAddress = "/sdcard/x" + application.getPackageName() + "/xinit.log";
+		if (!writeSdcardPermission) {
+			xinitLogAddress = XInit.appDataDir +"/xinit.log";
+		}
+		File logf = new File(xinitLogAddress);
+		if (logf.exists()) {
+			logf.delete();
+		}
+		XInit.xinitLog = new XinitLog(xinitLogAddress);
 		XInit.xinitDir = "/sdcard/x" + application.getPackageName();
-		XInit.xinitLogFile = "/sdcard/x" + application.getPackageName() + "/xinit.log";
-		XinitLog.XINIT_LOG_FILE = XInit.xinitLogFile;
 		if (writeSdcardPermission) {
 			File packageDirFile = new File(XInit.xinitDir);
 			if (!packageDirFile.exists()) {
 				packageDirFile.mkdirs();
-			}
-			File logf = new File(XInit.xinitLogFile);
-			if (logf.exists()) {
-				logf.delete();
 			}
 		}
 		loadFridaGadget();
@@ -50,14 +60,14 @@ public class XInit {
 		File gadgetElfFile = new File(xinitDir + "/libgadget.so");
 		if (gadgetElfFile.exists()) {
 			try {
-				XinitLog.appendText("start init " + gadgetElfFile.getAbsolutePath());
+				xinitLog.appendText("start init " + gadgetElfFile.getAbsolutePath());
 				Runtime.getRuntime().load(gadgetElfFile.getAbsolutePath());
-				XinitLog.appendText("init " + gadgetElfFile.getAbsolutePath() + " successful.");
+				xinitLog.appendText("init " + gadgetElfFile.getAbsolutePath() + " successful.");
 			} catch (Exception e) {
-				XinitLog.appendText(e);
+				xinitLog.appendText(e);
 			}
 		} else {
-			XinitLog.appendText("Not found any gadget library.");
+			xinitLog.appendText("Not found any gadget library.");
 		}
 	}
 
@@ -80,11 +90,11 @@ public class XInit {
 				}
 			}
 		}
-		XinitLog.appendText("patchDexPath:"+patchDexPath);
-		
+		xinitLog.appendText("patchDexPath:" + patchDexPath);
+
 		if (!patchDexPath.isEmpty()) {
 			ClassLoader applicationClassLoader = application.getClassLoader();
-			xInitClassLoader = new DexClassLoader(patchDexPath, XInit.application.getApplicationInfo().dataDir, null, applicationClassLoader);
+			xInitClassLoader = new DexClassLoader(patchDexPath, appDataDir, null, applicationClassLoader);
 			// ¼ÓÔØgz.xinit.Spider
 			try {
 				Class xinitSpiderClass = xInitClassLoader.loadClass("gz.xinit.Spider");
@@ -93,18 +103,18 @@ public class XInit {
 					public void run() {
 						try {
 							method.invoke(null);
-							XinitLog.appendText("flag_spider_start successfull!");
+							xinitLog.appendText("flag_spider_start successfull!");
 						} catch (Exception e) {
-							XinitLog.appendText(e);
+							xinitLog.appendText(e);
 						}
 					};
 				}.start();
 			} catch (ClassNotFoundException e) {
-				XinitLog.appendText("ClassNotFoundException>>>gz.xinit.Spider");
+				xinitLog.appendText("ClassNotFoundException>>>gz.xinit.Spider");
 			} catch (NoSuchMethodException e) {
-				XinitLog.appendText("NoSuchMethodException>>>gz.xinit.Spider with start()");
+				xinitLog.appendText("NoSuchMethodException>>>gz.xinit.Spider with start()");
 			} catch (Exception e) {
-				XinitLog.appendText(e);
+				xinitLog.appendText(e);
 			}
 		}
 	}
@@ -113,7 +123,7 @@ public class XInit {
 		if (application != null && application.getPackageName().equals(processName)) {
 			return true;
 		} else if (application == null) {
-			XinitLog.appendText("application == null");
+			xinitLog.appendText("application == null");
 		}
 		return false;
 	}
