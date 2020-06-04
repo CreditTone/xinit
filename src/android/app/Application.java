@@ -17,10 +17,6 @@
 
 package android.app;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import android.content.ComponentCallbacks;
@@ -30,8 +26,6 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.util.Log;
-import dalvik.system.BaseDexClassLoader;
 import gz.xinit.XInit;
 
 /**
@@ -52,6 +46,8 @@ import gz.xinit.XInit;
  * </p>
  */
 public class Application extends ContextWrapper implements ComponentCallbacks2 {
+	
+	
 	private ArrayList<ComponentCallbacks> mComponentCallbacks = new ArrayList<ComponentCallbacks>();
 	private ArrayList<ActivityLifecycleCallbacks> mActivityLifecycleCallbacks = new ArrayList<ActivityLifecycleCallbacks>();
 	private ArrayList<OnProvideAssistDataListener> mAssistCallbacks = null;
@@ -104,7 +100,7 @@ public class Application extends ContextWrapper implements ComponentCallbacks2 {
 	 * in a process. If you override this method, be sure to call super.onCreate().
 	 */
 	public void onCreate() {
-		XInit.onCreateInit(this);
+		XInit.onApplicationCreate(this);
 	}
 	
 	/**
