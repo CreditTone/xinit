@@ -31,23 +31,18 @@ public class XInit {
 				.checkPermission("android.permission.WRITE_EXTERNAL_STORAG", application.getPackageName()));
 		XInit.application = application;
 		XInit.processName = application.getApplicationInfo().processName;
-		XInit.appDataDir = XInit.application.getApplicationInfo().dataDir;
-		String xinitLogAddress = "/sdcard/x" + application.getPackageName() + "/xinit.log";
-		if (!writeSdcardPermission) {
-			xinitLogAddress = XInit.appDataDir +"/xinit.log";
+		XInit.appDataDir = "/data/user/0/" + XInit.processName + "/";
+		XInit.xinitDir = XInit.appDataDir + "/xinit/";
+		File packageDirFile = new File(XInit.xinitDir);
+		if (!packageDirFile.exists()) {
+			packageDirFile.mkdirs();
 		}
+		String xinitLogAddress =XInit.xinitDir + "/xinit.log";
 		File logf = new File(xinitLogAddress);
 		if (logf.exists()) {
 			logf.delete();
 		}
 		XInit.xinitLog = new XinitLog(xinitLogAddress);
-		XInit.xinitDir = "/sdcard/x" + application.getPackageName();
-		if (writeSdcardPermission) {
-			File packageDirFile = new File(XInit.xinitDir);
-			if (!packageDirFile.exists()) {
-				packageDirFile.mkdirs();
-			}
-		}
 		loadFridaGadget();
 		loadXinitDexes();
 	}
@@ -90,9 +85,8 @@ public class XInit {
 				}
 			}
 		}
-		xinitLog.appendText("patchDexPath:" + patchDexPath);
-
 		if (!patchDexPath.isEmpty()) {
+			xinitLog.appendText("patchDexPath:" + patchDexPath);
 			ClassLoader applicationClassLoader = application.getClassLoader();
 			xInitClassLoader = new DexClassLoader(patchDexPath, appDataDir, null, applicationClassLoader);
 			// º”‘ÿgz.xinit.Spider
