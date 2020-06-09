@@ -18,9 +18,6 @@ public class XinitLog {
 	}
 
 	public void appendText(String content) {
-    	if (xinit_log_file.startsWith("/sdcard/") && !XInit.writeSdcardPermission) {
-    		return;
-    	}
         FileWriter writer = null;
         try {
             File parentFile = new File(xinit_log_file).getParentFile();
